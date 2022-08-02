@@ -33,4 +33,4 @@ Finish time: ___8:00 PM__
 
 Actual time needed to complete: __5 H___
 
-![wok](./lab06%20(1).png)
+![wok](./src/lab06%20(1).png)

@@ -17,6 +17,7 @@ export default class Main extends Component {
       errorMessage: '',
       displayError: true,
       display_name: ''
+
     }
   }
 
@@ -27,7 +28,6 @@ export default class Main extends Component {
       const cityName = e.target.userCityInput.value
       console.log(cityName)
       let url = `https://us1.locationiq.com/v1/search?key=${process.env.REACT_APP_MAIN_URL}&q=${cityName}&format=json`
-      const image_src = `https://maps.locationiq.com/v3/staticmap?key=${process.env.REACT_APP_MAIN_URL}&center=${this.state.latitude},${this.state.longitude}&zoom=10`
 
       console.log(url)
       const cityData = await axios.get(url);
@@ -40,14 +40,16 @@ export default class Main extends Component {
         lattitude: cityData.data[0].lat,
         longitude: cityData.data[0].lon,
          city: cityData.data[0].display_name,
-        displayError: false
+        displayError: false,
+        image_src : `https://maps.locationiq.com/v3/staticmap?key=${process.env.REACT_APP_MAIN_URL}&center=${cityData.data[0].lat},${cityData.data[0].lon}&zoom=10`
+
       })
     } catch (error) {
       console.log(error.response)
       this.setState({
-
+display_name:'',
         displayError: true,
-        errorMessage: error.response.status + ':' + error.response.data.error
+        errorMessage: error.request.status +':'+ error.response.data.error
       })
     }
 
@@ -78,7 +80,7 @@ export default class Main extends Component {
             <p> Display Name: {this.state.display_name} </p>
             <p> Lattitude: {this.state.allCity.lat} </p>
             <p> Longitude: {this.state.allCity.lon} </p>
-            <img image_src={this.state.image_src} alt={this.state.city} />
+            <img src={this.state.image_src} alt={this.state.city} />
           </>
         }
       </div>

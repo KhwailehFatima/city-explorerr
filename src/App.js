@@ -3,6 +3,8 @@ import axios from 'axios';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import Weather from './weather';
+
 
 export default class Main extends Component {
   constructor(props) {
@@ -10,28 +12,24 @@ export default class Main extends Component {
     this.state = {
       userInput: {},
       allCity: {},
-      image_src: {},
+      image_src: '',
       displayName: {},
       lattitude: {},
       longitude: {},
       errorMessage: '',
       displayError: true,
-      display_name: ''
-
+      display_name: '',
+      weather: {}
     }
   }
-
-  handleSubmit = async (e) => {
+   handleSubmit = async (e) => {
     e.preventDefault()
-    try {
+    const cityName = e.target.userCityInput.value;
+      
+    let url = `https://us1.locationiq.com/v1/search?key=${process.env.REACT_APP_MAIN_URL}&q=${cityName}&format=json`
+     const cityData = await axios.get(url);
 
-      const cityName = e.target.userCityInput.value
-      console.log(cityName)
-      let url = `https://us1.locationiq.com/v1/search?key=${process.env.REACT_APP_MAIN_URL}&q=${cityName}&format=json`
-
-      console.log(url)
-      const cityData = await axios.get(url);
-      console.log(cityData)
+     try {
 
       this.setState({
         allCity: cityData.data[0],
@@ -39,22 +37,44 @@ export default class Main extends Component {
         display_name: cityData.data[0].display_name,
         lattitude: cityData.data[0].lat,
         longitude: cityData.data[0].lon,
-         city: cityData.data[0].display_name,
+        city: cityData.data[0].display_name,
         displayError: false,
-        image_src : `https://maps.locationiq.com/v3/staticmap?key=${process.env.REACT_APP_MAIN_URL}&center=${cityData.data[0].lat},${cityData.data[0].lon}&zoom=10`
-
+        image_src: `https://maps.locationiq.com/v3/staticmap?key=${process.env.REACT_APP_MAIN_URL}&center=${cityData.data[0].lat},${cityData.data[0].lon}&zoom=10`
       })
     } catch (error) {
-      console.log(error.response)
-      this.setState({
-display_name:'',
+       this.setState({
+        display_name: '',
         displayError: true,
-        errorMessage: error.request.status +':'+ error.response.data.error
+        errorMessage: error.response.status + ": " + error.response.data.error
       })
-    }
+     }
 
+
+this.displayWeather(cityData.data[0].lat, cityData.data[0].lon, cityName);
+}
+ 
+  displayWeather = async (lat,lon, cityName) => {
+
+    try {
+       const weatherData = await axios.get (`http://localhost:3001/weather`, { params: { lattitude: lat, longitude: lon, searchQuery: cityName} })
+       console.log(weatherData)
+       this.setState({
+        weather: weatherData.data,       
+     displayError:false
+
+    })
+ 
+  } catch (error) {
+    console.log(error)
+      this.setState({
+        
+        displayError:true,
+        
+        errorMessage: error.response.status + ": " + error.response.data.error
+       })
+     }
   }
-  
+
   render() {
     return (
       <div>
@@ -71,16 +91,18 @@ display_name:'',
           </Button>
         </Form>
 
-         {this.state.displayError &&
+        {this.state.displayError &&
+          <p>  {this.state.errorMessage} </p>
+        }
 
-<p>  {this.state.errorMessage} </p>
-}
         {this.state.display_name &&
           <>
+          
             <p> Display Name: {this.state.display_name} </p>
             <p> Lattitude: {this.state.allCity.lat} </p>
             <p> Longitude: {this.state.allCity.lon} </p>
             <img src={this.state.image_src} alt={this.state.city} />
+             <Weather weather={this.state.weather} />
           </>
         }
       </div>

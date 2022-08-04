@@ -19,17 +19,17 @@ export default class Main extends Component {
       errorMessage: '',
       displayError: true,
       display_name: '',
-      weather: {}
+      weather: []
     }
   }
-   handleSubmit = async (e) => {
+  handleSubmit = async (e) => {
     e.preventDefault()
     const cityName = e.target.userCityInput.value;
-      
-    let url = `https://us1.locationiq.com/v1/search?key=${process.env.REACT_APP_MAIN_URL}&q=${cityName}&format=json`
-     const cityData = await axios.get(url);
 
-     try {
+    let url = `https://us1.locationiq.com/v1/search?key=${process.env.REACT_APP_MAIN_URL}&q=${cityName}&format=json`
+    const cityData = await axios.get(url);
+
+    try {
 
       this.setState({
         allCity: cityData.data[0],
@@ -42,37 +42,36 @@ export default class Main extends Component {
         image_src: `https://maps.locationiq.com/v3/staticmap?key=${process.env.REACT_APP_MAIN_URL}&center=${cityData.data[0].lat},${cityData.data[0].lon}&zoom=10`
       })
     } catch (error) {
-       this.setState({
+      this.setState({
         display_name: '',
         displayError: true,
         errorMessage: error.response.status + ": " + error.response.data.error
       })
-     }
+    }
 
 
-this.displayWeather(cityData.data[0].lat, cityData.data[0].lon, cityName);
-}
- 
-  displayWeather = async (lat,lon, cityName) => {
+    this.displayWeather(cityData.data[0].lat, cityData.data[0].lon, cityName);
+  }
+
+  displayWeather = async (lat, lon, cityName) => {
 
     try {
-       const weatherData = await axios.get (`http://localhost:3001/weather`, { params: { lattitude: lat, longitude: lon, searchQuery: cityName} })
-       console.log(weatherData)
-       this.setState({
-        weather: weatherData.data,       
-     displayError:false
-
-    })
- 
-  } catch (error) {
-    console.log(error)
+      const weatherData = await axios.get(`https://cityexplorer301.herokuapp.com/weather`, { params: { lattitude: lat, longitude: lon, searchQuery: cityName } })
+      console.log(weatherData)
       this.setState({
-        
-        displayError:true,
-        
+        weather: weatherData.data,
+
+        displayError: false
+
+      })
+
+    } catch (error) {
+      console.log(error)
+      this.setState({
+        displayError: true,
         errorMessage: error.response.status + ": " + error.response.data.error
-       })
-     }
+      })
+    }
   }
 
   render() {
@@ -97,14 +96,29 @@ this.displayWeather(cityData.data[0].lat, cityData.data[0].lon, cityName);
 
         {this.state.display_name &&
           <>
-          
+
             <p> Display Name: {this.state.display_name} </p>
             <p> Lattitude: {this.state.allCity.lat} </p>
             <p> Longitude: {this.state.allCity.lon} </p>
             <img src={this.state.image_src} alt={this.state.city} />
-             <Weather weather={this.state.weather} />
+            <Weather weather={this.state.weather} />
+
+
+
+
           </>
         }
+        {/* {
+          this.state.weather.map(item => {
+            return (
+              <>
+                <p> Date :  {item.date}   </p>
+                <p> Description : {item.description} </p>
+              </>
+            )
+          }
+          )
+        } */}
       </div>
     )
   }

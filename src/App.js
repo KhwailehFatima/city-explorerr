@@ -1,124 +1,150 @@
 import React, { Component } from 'react'
 import axios from 'axios';
-import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import Weather from './weather';
-
+import SearchCityForm from './components/SearchCityForm';
+import DispInfo from './components/DispInfo';
+import Map from './components/Map';
+import MessageErr from './components/MessageErr';
+import Weather from './components/Weather';
+import Movie from './components/Movie';
 
 export default class Main extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      userInput: {},
+      // userInput: {},
       allCity: {},
-      image_src: '',
+      map: '',
       displayName: {},
       lattitude: {},
       longitude: {},
       errorMessage: '',
       displayError: true,
       display_name: '',
-      weather: []
+      isWeather: false,
+      weather: [],
+      isMovie: false,
+      movie: []
     }
   }
   handleSubmit = async (e) => {
     e.preventDefault()
-    const cityName = e.target.userCityInput.value;
-
-    let url = `https://us1.locationiq.com/v1/search?key=${process.env.REACT_APP_MAIN_URL}&q=${cityName}&format=json`
-    const cityData = await axios.get(url);
+    const searchQuery = e.target.searchQuery.value;
+    //console.log(searchQuery)
+    let url = `https://us1.locationiq.com/v1/search?key=${process.env.REACT_APP_MAIN_URL}&q=${searchQuery}&format=json`
 
     try {
-
+      const cityData = await axios.get(url);
+      console.log(cityData)
       this.setState({
-        allCity: cityData.data[0],
-        userInput: e.target.userCityInput.value,
         display_name: cityData.data[0].display_name,
         lattitude: cityData.data[0].lat,
         longitude: cityData.data[0].lon,
-        city: cityData.data[0].display_name,
         displayError: false,
-        image_src: `https://maps.locationiq.com/v3/staticmap?key=${process.env.REACT_APP_MAIN_URL}&center=${cityData.data[0].lat},${cityData.data[0].lon}&zoom=10`
+        displayInfo: true
       })
+
+      this.displayMap(cityData.data[0].lat, cityData.data[0].lon);
+
+      this.displayWeather(searchQuery, cityData.data[0].lat, cityData.data[0].lon);
+
+      this.displayMovie(searchQuery);
+
     } catch (error) {
+      //   console.log(error)
       this.setState({
         display_name: '',
         displayError: true,
+        displayInfo: false,
         errorMessage: error.response.status + ": " + error.response.data.error
       })
     }
 
 
-    this.displayWeather(cityData.data[0].lat, cityData.data[0].lon, cityName);
   }
 
-  displayWeather = async (lat, lon, cityName) => {
+  displayMap = async (lat, lon) => {
+
+    const mp_src = `https://maps.locationiq.com/v3/staticmap?key=${process.env.REACT_APP_MAIN_URL}&center=${lat},${lon}&zoom=10`
+    this.setState({
+      map: mp_src
+    })
+
+  }
+
+
+  displayWeather = async (lat, lon, searchQuery) => {
 
     try {
-      const weatherData = await axios.get(`https://cityexplorer301.herokuapp.com/weather`, { params: { lattitude: lat, longitude: lon, searchQuery: cityName } })
-      console.log(weatherData)
+      const weatherData = await axios.get(`https://cityexplorer301.herokuapp.com//weather?searchQuery=${searchQuery}&lat=${lat}&lon=${lon}`)
+      //console.log(weatherData)
       this.setState({
         weather: weatherData.data,
-
-        displayError: false
+        isWeather: true,
+        // displayError: false
 
       })
 
     } catch (error) {
-      console.log(error)
+      // console.log(error)
       this.setState({
+        isWeather: false,
         displayError: true,
-        errorMessage: error.response.status + ": " + error.response.data.error
+        errorMessage: error.response.status + ": " + error.response.data.error,
+        displayInfo: false
+      })
+    }
+  }
+
+  displayMovie = async (searchQuery) => {
+
+    try {
+      const movieData = await axios.get(`https://cityexplorer301.herokuapp.com//movies?searchQuery=${searchQuery}`)
+      console.log(movieData)
+      this.setState({
+        movie: movieData.data,
+        isMovie: true
+        // displayError: false
+
+      })
+
+    } catch (error) {
+      // console.log(error)
+      this.setState({
+        isMovie: false,
+        // displayError: true,
+        // errorMessage: error.response.status + ": " + error.response.data.error
+       errorMessage: `${error.response.status}: ${error.response.data.error}`
       })
     }
   }
 
   render() {
     return (
-      <div>
+      <div className="App">
         <h1> {process.env.REACT_APP_TITLE}</h1>
-        <Form onSubmit={this.handleSubmit}>
-          <Form.Group className="mb-3"  >
-            <Form.Label>Enter City</Form.Label>
-            <Form.Control type="text" name="userCityInput" placeholder="Enter city ..." />
-            <Form.Text className="text-muted">
-            </Form.Text>
-          </Form.Group>
-          <Button variant="primary" type="submit">
-            Explore!
-          </Button>
-        </Form>
 
-        {this.state.displayError &&
-          <p>  {this.state.errorMessage} </p>
-        }
+        <SearchCityForm handleSubmit={this.handleSubmit} />
 
-        {this.state.display_name &&
+        {this.state.displayInfo &&
           <>
-
-            <p> Display Name: {this.state.display_name} </p>
-            <p> Lattitude: {this.state.allCity.lat} </p>
-            <p> Longitude: {this.state.allCity.lon} </p>
-            <img src={this.state.image_src} alt={this.state.city} />
-            <Weather weather={this.state.weather} />
-
-
-
-
+            <DispInfo lattitude={this.state.lattitude} longitude={this.state.longitude} displayName={this.state.display_name} />
+            <Map map={this.state.map} displayName={this.state.display_name} />
           </>
         }
-        {/* {
-          this.state.weather.map(item => {
-            return (
-              <>
-                <p> Date :  {item.date}   </p>
-                <p> Description : {item.description} </p>
-              </>
-            )
-          }
-          )
-        } */}
+
+        {this.state.isWeather &&
+          <Weather weather={this.state.weather} />
+        }
+
+
+        {this.state.isMovie &&
+          <Movie movie={this.state.movie} />}
+
+        {this.state.displayError &&
+          <MessageErr errorMessage={this.state.errorMessage} />
+        }
+
       </div>
     )
   }

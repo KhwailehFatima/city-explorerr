@@ -13,7 +13,7 @@ export default class Main extends Component {
     super(props);
     this.state = {
       // userInput: {},
-      allCity: {},
+      
       map: '',
       displayName: {},
       lattitude: {},
@@ -21,6 +21,7 @@ export default class Main extends Component {
       errorMessage: '',
       displayError: true,
       display_name: '',
+      displayInfo:false,
       isWeather: false,
       weather: [],
       isMovie: false,
@@ -76,7 +77,7 @@ export default class Main extends Component {
   displayWeather = async (lat, lon, searchQuery) => {
 
     try {
-      const weatherData = await axios.get(`https://cityexplorer301.herokuapp.com//weather?searchQuery=${searchQuery}&lat=${lat}&lon=${lon}`)
+      const weatherData = await axios.get(`https://cityexplorer301.herokuapp.com/weather?searchQuery=${searchQuery}&lat=${lat}&lon=${lon}`)
       //console.log(weatherData)
       this.setState({
         weather: weatherData.data,
@@ -99,7 +100,7 @@ export default class Main extends Component {
   displayMovie = async (searchQuery) => {
 
     try {
-      const movieData = await axios.get(`https://cityexplorer301.herokuapp.com//movies?searchQuery=${searchQuery}`)
+      const movieData = await axios.get(`https://cityexplorer301.herokuapp.com/movies?searchQuery=${searchQuery}`)
       console.log(movieData)
       this.setState({
         movie: movieData.data,
@@ -129,7 +130,7 @@ export default class Main extends Component {
         {this.state.displayInfo &&
           <>
             <DispInfo lattitude={this.state.lattitude} longitude={this.state.longitude} displayName={this.state.display_name} />
-            <Map map={this.state.map} displayName={this.state.display_name} />
+            <Map map={this.state.map}   />
           </>
         }
 

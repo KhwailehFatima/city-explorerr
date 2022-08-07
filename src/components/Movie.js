@@ -14,7 +14,7 @@ export default class Weather extends Component {
                     <p>Popularity: { item.popularity}</p>
                     <p>Released On: { item.released_on}</p>
 
-                    <img src={item.poster_path} alt={ item.title}/>
+                    <img src={item.image_url} alt={ item.title}/>
               
 
                 </div>

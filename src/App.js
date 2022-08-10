@@ -32,11 +32,11 @@ export default class Main extends Component {
     e.preventDefault()
     const searchQuery = e.target.searchQuery.value;
     //console.log(searchQuery)
-    let url = `https://us1.locationiq.com/v1/search?key=${process.env.REACT_APP_MAIN_URL}&q=${searchQuery}&format=json`
-
+    let url = `https://eu1.locationiq.com/v1/search.php?key=${process.env.REACT_APP_MAIN_URL}&q=${searchQuery}&format=json`
+    
     try {
-      const cityData = await axios.get(url);
-      console.log(cityData)
+      const cityData = await axios.get(url)
+      //console.log(cityData)
       this.setState({
         display_name: cityData.data[0].display_name,
         lattitude: cityData.data[0].lat,
@@ -45,23 +45,23 @@ export default class Main extends Component {
         displayInfo: true
       })
 
+
       this.displayMap(cityData.data[0].lat, cityData.data[0].lon);
 
-      this.displayWeather(searchQuery, cityData.data[0].lat, cityData.data[0].lon);
+      this.displayWeather(cityData.data[0].lat, cityData.data[0].lon, searchQuery);
 
       this.displayMovie(searchQuery);
-
-    } catch (error) {
-      //   console.log(error)
+     } catch (error) {
+         //console.log(error)
       this.setState({
         display_name: '',
         displayError: true,
         displayInfo: false,
-        errorMessage: error.response.status + ": " + error.response.data.error
+        errorMessage: error.response.status + ": " + error.response.data
       })
-    }
-
-
+     }
+ 
+      
   }
 
   displayMap = async (lat, lon) => {
@@ -70,18 +70,18 @@ export default class Main extends Component {
     this.setState({
       map: mp_src
     })
-
+//console.log(mp_src)
   }
 
 
   displayWeather = async (lat, lon, searchQuery) => {
 
     try {
-      const weatherData = await axios.get(`https://cityexplorer301.herokuapp.com/weather?searchQuery=${searchQuery}&lat=${lat}&lon=${lon}`)
-      //console.log(weatherData)
+      const weatherData = await axios.get(`http://localhost:3001/weather?lat=${lat}&lon=${lon}&searchQuery=${searchQuery}`)
+      //console.log("weatherData :"  + weatherData.data)
       this.setState({
         weather: weatherData.data,
-        isWeather: true,
+        isWeather: true
         // displayError: false
 
       })
@@ -91,17 +91,16 @@ export default class Main extends Component {
       this.setState({
         isWeather: false,
         displayError: true,
-        errorMessage: error.response.status + ": " + error.response.data.error,
+        errorMessage: error.response.status + ": " + error.response.data,
         displayInfo: false
       })
     }
   }
 
   displayMovie = async (searchQuery) => {
-
     try {
-      const movieData = await axios.get(`https://cityexplorer301.herokuapp.com/movies?searchQuery=${searchQuery}`)
-      console.log(movieData)
+      const movieData = await axios.get(`http://localhost:3001/movie?query=${searchQuery}`)
+      console.log(movieData.data)
       this.setState({
         movie: movieData.data,
         isMovie: true
@@ -115,7 +114,7 @@ export default class Main extends Component {
         isMovie: false,
         // displayError: true,
         // errorMessage: error.response.status + ": " + error.response.data.error
-       errorMessage: `${error.response.status}: ${error.response.data.error}`
+       errorMessage: error.response.status + ": " + error.response.data
       })
     }
   }
